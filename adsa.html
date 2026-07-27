@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>StockIQ — AVL Analytics Platform</title>
+<style>
+/* ═══════════════════════════════════════════════
+   DESIGN TOKENS — dark / lime theme
+═══════════════════════════════════════════════ */
+:root{
+  --p:#caff33;--pd:#a3d61a;--pl:rgba(202,255,51,.12);
+  --sid:#0d0d0f;--sid2:#000000;
+  --bg:#0a0a0b;--sur:#141416;
+  --bdr:#26262a;--bdr2:#38383d;
+  --t1:#f2f2f2;--t2:#9a9aa2;--t3:#5f5f66;
+  --ok:#22c55e;--ok2:rgba(34,197,94,.12);
+  --warn:#f5a524;--warn2:rgba(245,165,36,.12);
+  --err:#f43f5e;--err2:rgba(244,63,94,.12);
+  --info:#38bdf8;--info2:rgba(56,189,248,.12);
+  --r:8px;--r2:12px;
+  --sh:0 1px 3px rgba(0,0,0,.6),0 1px 2px rgba(0,0,0,.4);
+  --sh2:0 4px 20px rgba(0,0,0,.55);
+  --sh3:0 20px 50px rgba(0,0,0,.65);
+  --sw:240px;--th:60px;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --mono:'Menlo','Cascadia Code','JetBrains Mono','Consolas',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:14px;color:var(--t1);background:var(--bg);min-height:100vh;-webkit-font-smoothing:antialiased;line-height:1.5}
+input,select,button,textarea{font-family:inherit;font-size:inherit}
+a{color:var(--p);text-decoration:none}
+
+/* ═══════════════════════════════════════════════
+   LOGIN PAGE
+═══════════════════════════════════════════════ */
+#pg-login{min-height:100vh;display:flex;flex-direction:column;background:linear-gradient(160deg,#000 0%,#0a0f06 45%,#0d1604 100%);position:relative;overflow:hidden}
+#login-canvas{position:absolute;inset:0;opacity:.6;pointer-events:none}
+.lg-topnav{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:20px 48px;flex-shrink:0}
+.lg-topnav-links{display:flex;gap:28px;font-size:13px;color:rgba(255,255,255,.65);font-weight:600}
+.lg-cta{background:var(--p);color:#08110a;padding:9px 22px;border-radius:30px;font-weight:800;font-size:13px;border:none;cursor:pointer;transition:all .15s}
+.lg-cta:hover{background:var(--pd)}
+.lg-body{display:flex;flex:1;position:relative;z-index:1}
+.lg-left{flex:1;display:flex;flex-direction:column;justify-content:center;padding:20px 60px 60px;color:#fff;position:relative;z-index:1}
+.lg-logo{display:flex;align-items:center;gap:12px}
+.lg-logo-mark{width:44px;height:44px;background:var(--pl);border:1px solid rgba(202,255,51,.3);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.lg-logo-name{font-size:22px;font-weight:800;letter-spacing:-.5px;color:#fff}
+.lg-logo-sub{font-size:10px;opacity:.55;letter-spacing:1px;text-transform:uppercase}
+.lg-headline{font-size:46px;font-weight:900;line-height:1.1;margin-bottom:20px;letter-spacing:-1px;margin-top:36px}
+.lg-headline span{color:var(--p)}
+.lg-sub{font-size:15px;opacity:.7;max-width:420px;line-height:1.7;margin-bottom:40px}
+.lg-facts{display:flex;flex-direction:column;gap:14px}
+.lg-fact{display:flex;align-items:flex-start;gap:14px}
+.lg-fact-ic{width:36px;height:36px;flex-shrink:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.lg-fact-txt{font-size:13px;opacity:.8;line-height:1.6}
+.lg-fact-txt strong{color:var(--p)}
+.lg-right{width:460px;background:var(--sur);display:flex;align-items:center;justify-content:center;padding:48px;box-shadow:-20px 0 60px rgba(0,0,0,.6);border-left:1px solid var(--bdr)}
+.lg-card{width:100%;max-width:380px}
+.lg-title{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px;color:var(--t1)}
+.lg-desc{color:var(--t2);margin-bottom:32px;font-size:13px}
+.fg{margin-bottom:18px}
+.flabel{display:block;font-size:12px;font-weight:700;color:var(--t1);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.finput{width:100%;padding:11px 14px;border:1.5px solid var(--bdr);border-radius:var(--r);font-size:14px;color:var(--t1);outline:none;transition:border .15s,box-shadow .15s;background:#0b0b0c}
+.finput:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(202,255,51,.15)}
+.finput.has-err{border-color:var(--err)}
+select.finput{cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border:none;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn-p{background:var(--p);color:#08110a;font-weight:700}.btn-p:hover:not(:disabled){background:var(--pd)}
+.btn-out{background:transparent;border:1.5px solid var(--bdr);color:var(--t1)}.btn-out:hover:not(:disabled){background:rgba(255,255,255,.05)}
+.btn-danger{background:var(--err);color:#fff}.btn-danger:hover:not(:disabled){background:#c81e42}
+.btn-ok{background:var(--ok);color:#08110a}.btn-ok:hover:not(:disabled){background:#16a34a}
+.btn-ghost{background:transparent;color:var(--t2);border:none}.btn-ghost:hover:not(:disabled){background:rgba(255,255,255,.05);color:var(--t1)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-xs{padding:4px 8px;font-size:11px}
+.btn-full{width:100%}
+.err-box{display:none;padding:11px 14px;background:var(--err2);border:1px solid rgba(244,63,94,.3);border-radius:var(--r);color:#fca5a5;font-size:13px;margin-bottom:16px;gap:8px;align-items:flex-start}
+.err-box.show{display:flex}
+.quick-wrap{margin-top:28px;padding-top:24px;border-top:1px solid var(--bdr)}
+.quick-lbl{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qbtn{display:flex;flex-direction:column;align-items:flex-start;padding:10px 12px;border:1.5px solid var(--bdr);border-radius:var(--r);cursor:pointer;background:#0b0b0c;transition:all .15s;text-align:left}
+.qbtn:hover{border-color:var(--p);background:rgba(202,255,51,.06)}
+.qbtn-name{font-size:13px;font-weight:700;color:var(--t1)}
+.qbtn-role{font-size:11px;margin-top:2px}
+.role-admin{color:#fb7185}.role-analyst{color:#38bdf8}.role-viewer{color:#4ade80}
+
+/* ═══════════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════════ */
+#pg-app{display:none;flex-direction:column;min-height:100vh}
+#pg-app.on{display:flex}
+
+/* TOPBAR */
+.topbar{height:var(--th);background:var(--sid);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 20px 0 0;position:sticky;top:0;z-index:200;gap:0}
+.tb-brand{width:var(--sw);display:flex;align-items:center;gap:10px;padding:0 20px;flex-shrink:0}
+.tb-brand-ic{width:32px;height:32px;background:var(--p);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#08110a;font-size:16px}
+.tb-brand-name{font-size:17px;font-weight:800;color:var(--p);letter-spacing:-.5px}
+.tb-div{width:1px;height:28px;background:var(--bdr);flex-shrink:0}
+.tb-page{font-size:14px;font-weight:600;color:var(--t1);padding:0 18px}
+.tb-space{flex:1}
+.tb-avl{display:flex;align-items:center;gap:6px;padding:5px 12px;background:var(--pl);border-radius:20px;font-size:12px;font-weight:700;color:var(--p);margin-right:12px;cursor:default;transition:all .3s}
+.tb-avl.pulse{background:rgba(202,255,51,.25);transform:scale(1.05)}
+.tb-user{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:var(--r);cursor:pointer;transition:background .15s;margin-right:4px}
+.tb-user:hover{background:rgba(255,255,255,.05)}
+.avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
+.tb-uname{font-size:13px;font-weight:700;color:var(--t1)}
+.tb-urole{font-size:11px;color:var(--t2)}
+
+/* SIDEBAR */
+.app-body{display:flex;flex:1;overflow:hidden}
+.sidebar{width:var(--sw);background:var(--sid2);display:flex;flex-direction:column;position:sticky;top:var(--th);height:calc(100vh - var(--th));overflow-y:auto;flex-shrink:0;border-right:1px solid var(--bdr)}
+.sb-sec{padding:12px 10px 4px}
+.sb-lbl{font-size:10px;font-weight:700;color:#52525b;text-transform:uppercase;letter-spacing:1px;padding:0 8px;margin-bottom:4px}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);cursor:pointer;color:#8a8a92;font-size:13px;font-weight:500;transition:all .15s;position:relative}
+.ni:hover{background:rgba(255,255,255,.05);color:#e4e4e7}
+.ni.on{background:rgba(202,255,51,.12);color:var(--p);font-weight:600}
+.ni.on::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--p);border-radius:0 3px 3px 0}
+.ni-ic{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.nb{margin-left:auto;background:rgba(202,255,51,.2);color:var(--p);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px}
+.sb-bot{margin-top:auto;padding:10px;border-top:1px solid rgba(255,255,255,.07)}
+
+/* MAIN */
+.main{flex:1;padding:28px;overflow-y:auto;max-width:calc(100vw - var(--sw))}
+.page{display:none}.page.on{display:block}
+
+/* ═══════════════════════════════════════════════
+   COMMON COMPONENTS
+═══════════════════════════════════════════════ */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:16px;flex-wrap:wrap}
+.ph-left .ph-title{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:2px;color:var(--t1)}
+.ph-left .ph-sub{font-size:13px;color:var(--t2)}
+.ph-actions{display:flex;gap:8px;flex-shrink:0}
+
+/* Stat Grid */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:20px;box-shadow:var(--sh)}
+.stat-ic{font-size:20px;width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.stat-ic.blue{background:rgba(56,189,248,.12)}.stat-ic.green{background:rgba(34,197,94,.12)}.stat-ic.amber{background:rgba(245,165,36,.12)}.stat-ic.purple{background:rgba(167,139,250,.12)}
+.stat-lbl{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.stat-val{font-size:26px;font-weight:800;letter-spacing:-.5px;color:var(--t1);line-height:1}
+.stat-note{font-size:11px;color:var(--t3);margin-top:4px}
+
+/* Card */
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);box-shadow:var(--sh)}
+.card+.card{margin-top:16px}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--bdr);gap:12px}
+.ch-title{font-size:14px;font-weight:700;color:var(--t1)}
+.ch-sub{font-size:11px;color:var(--t3);margin-top:2px}
+.cb{padding:20px}
+.cf{padding:12px 20px;background:rgba(255,255,255,.02);border-top:1px solid var(--bdr);border-radius:0 0 var(--r) var(--r)}
+
+/* Table */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{text-align:left;padding:9px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);background:rgba(255,255,255,.02);border-bottom:1px solid var(--bdr);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--bdr);transition:background .1s}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:11px 16px;font-size:13px;color:var(--t1);vertical-align:middle}
+
+/* Badge */
+.bdg{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.bdg-blue{background:rgba(56,189,248,.14);color:#7dd3fc}
+.bdg-green{background:rgba(34,197,94,.14);color:#86efac}
+.bdg-red{background:rgba(244,63,94,.14);color:#fca5a5}
+.bdg-amber{background:rgba(245,165,36,.14);color:#fcd34d}
+.bdg-purple{background:rgba(167,139,250,.14);color:#c4b5fd}
+.bdg-slate{background:rgba(255,255,255,.06);color:var(--t2)}
+.bdg-teal{background:rgba(45,212,191,.14);color:#5eead4}
+
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+/* Pagination */
+.pager{display:flex;align-items:center;gap:5px;justify-content:center;padding:14px 0}
+.pg{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--bdr);border-radius:var(--r);cursor:pointer;font-size:13px;font-weight:600;color:var(--t2);background:var(--sur);transition:all .15s}
+.pg:hover:not(:disabled){border-color:var(--p);color:var(--p);background:var(--pl)}
+.pg.on{background:var(--p);border-color:var(--p);color:#08110a}
+.pg:disabled{opacity:.4;cursor:not-allowed}
+.pg-info{font-size:12px;color:var(--t3);margin:0 10px}
+
+/* Toast */
+#toasts{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:360px}
+.toast{display:flex;align-items:flex-start;gap:10px;background:#18181b;color:#f1f5f9;padding:12px 16px;border-radius:var(--r);box-shadow:var(--sh3);font-size:13px;animation:tIn .2s ease;pointer-events:all;cursor:pointer;line-height:1.4;border:1px solid var(--bdr)}
+.toast.ok{background:#0f2e1c;border-color:rgba(34,197,94,.3)}.toast.bad{background:#3a1220;border-color:rgba(244,63,94,.3)}.toast.warn{background:#3a2a0a;border-color:rgba(245,165,36,.3)}
+@keyframes tIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r2);padding:28px;width:100%;max-width:480px;box-shadow:var(--sh3);animation:mIn .18s ease}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:4px;letter-spacing:-.3px;color:var(--t1)}
+.modal-sub{font-size:13px;color:var(--t2);margin-bottom:24px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:24px}
+@keyframes mIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* Progress */
+.prog-wrap{margin-top:10px}
+.prog-bar-bg{height:8px;background:var(--bdr);border-radius:4px;overflow:hidden}
+.prog-bar{height:100%;background:var(--p);border-radius:4px;transition:width .2s;width:0%}
+.prog-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--t3);margin-top:4px}
+
+/* Code / Mono block */
+.code-box{background:#0a0a0c;border:1px solid var(--bdr);color:#e2e8f0;border-radius:var(--r);padding:16px;font-family:var(--mono);font-size:12px;line-height:1.8;overflow:auto}
+.ct{color:#94a3b8}.ck{color:#38bdf8}.cv{color:#a3e635}.ce{color:#f87171}.cw{color:#facc15}.cs{color:#34d399}
+
+/* Loading / Empty */
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:48px;color:var(--t3)}
+.spin{width:20px;height:20px;border:2.5px solid var(--bdr);border-top-color:var(--p);border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:56px 20px}
+.empty-ic{font-size:40px;margin-bottom:12px}
+.empty-title{font-size:16px;font-weight:700;margin-bottom:6px;color:var(--t1)}
+.empty-sub{font-size:13px;color:var(--t2)}
+
+/* Divider */
+.divider{border:none;border-top:1px solid var(--bdr);margin:16px 0}
+
+/* Status dot */
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-green{background:#10b981}.dot-red{background:#ef4444}.dot-amber{background:#f59e0b}
+
+/* Mono text */
+.mono{font-family:var(--mono);font-size:12px}
+
+/* Charts (dashboard) */
+.spark-svg{width:100%;height:120px;display:block}
+.bar-chart{display:flex;align-items:flex-end;gap:10px;height:140px;padding-top:10px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.bar-fill{width:100%;border-radius:4px 4px 0 0;background:var(--p);transition:height .3s}
+.bar-lbl{font-size:11px;color:var(--t3);margin-top:6px}
+.bar-val{font-size:11px;color:var(--t1);font-weight:700;margin-bottom:4px}
+.donut-wrap{display:flex;align-items:center;gap:20px}
+.donut-legend{display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--t2)}
+.donut-legend-item{display:flex;align-items:center;gap:8px}
+.donut-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* Responsive */
+@media(max-width:1100px){.stat-grid{grid-template-columns:repeat(2,1fr)}.g2,.g3{grid-template-columns:1fr}}
+@media(max-width:768px){.lg-left{display:none}.lg-right{width:100%}.sidebar{display:none}.main{padding:16px;max-width:100%}.stat-grid{grid-template-columns:repeat(2,1fr)}.lg-topnav-links{display:none}}
+
+/* Alert inline */
+.alert{padding:12px 14px;border-radius:var(--r);font-size:13px;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
+.alert-info{background:var(--info2);color:#7dd3fc;border:1px solid rgba(56,189,248,.25)}
+.alert-ok{background:var(--ok2);color:#86efac;border:1px solid rgba(34,197,94,.25)}
+.alert-warn{background:var(--warn2);color:#fcd34d;border:1px solid rgba(245,165,36,.25)}
+.alert-err{background:var(--err2);color:#fca5a5;border:1px solid rgba(244,63,94,.25)}
+
+/* Tooltips / helpers */
+.note{font-size:11px;color:var(--t3);margin-top:4px}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══════════════════════════════════════════════ -->
+<div id="pg-login">
+  <canvas id="login-canvas"></canvas>
+  <nav class="lg-topnav">
+    <div class="lg-logo">
+      <div class="lg-logo-mark">📈</div>
+      <div>
+        <div class="lg-logo-name">StockIQ</div>
+        <div class="lg-logo-sub">DSA-CH23-GROUP-C4</div>
+      </div>
+    </div>
+    <div class="lg-topnav-links"><span>Overview</span><span>How it Works</span><span>Pricing</span><span>Contact</span></div>
+    <button class="lg-cta" onclick="document.getElementById('lg-u').focus()">Sign In</button>
+  </nav>
+  <div class="lg-body">
+    <div class="lg-left">
+      <div class="lg-headline">Redefine Trading<br><span>with StockIQ's Precision</span></div>
+      <div class="lg-sub">A multi-tenant financial analytics platform where every operation — insert, search, range query, delete — runs in O(log n) at any scale, backed exclusively by self-balancing AVL Trees.</div>
+      <div class="lg-facts">
+        <div class="lg-fact"><div class="lg-fact-ic">🌳</div><div class="lg-fact-txt"><strong>AVL Tree Only</strong> — all 4 rotation cases, height-balanced at every insert and delete. Guaranteed O(log n) even at 1,000,000+ records.</div></div>
+        <div class="lg-fact"><div class="lg-fact-ic">🔐</div><div class="lg-fact-txt"><strong>SHA-256 passwords</strong>, UUID-4 session tokens, rate-limited logins, role-gated pages, immutable append-only audit log.</div></div>
+        <div class="lg-fact"><div class="lg-fact-ic">⚡</div><div class="lg-fact-txt"><strong>1M+ transactions</strong> via chunked async processing — no UI freeze, live progress, range queries on millions of AVL nodes in milliseconds.</div></div>
+      </div>
+    </div>
+    <div class="lg-right">
+      <div class="lg-card">
+        <div class="lg-title">Sign in</div>
+        <div class="lg-desc">Enter your credentials to access the platform</div>
+        <div class="err-box" id="lg-err"><span>⚠️</span><span id="lg-err-txt"></span></div>
+        <div class="fg">
+          <label class="flabel" for="lg-u">Username</label>
+          <input class="finput" id="lg-u" type="text" placeholder="your username" autocomplete="username">
+        </div>
+        <div class="fg">
+          <label class="flabel" for="lg-p">Password</label>
+          <input class="finput" id="lg-p" type="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <button class="btn btn-p btn-full" id="lg-btn" onclick="doLogin()">Sign In →</button>
+        <div class="quick-wrap">
+          <div class="quick-lbl">Demo Users — click to sign in instantly</div>
+          <div class="quick-grid">
+            <button class="qbtn" onclick="quickLogin('alice','pass123')"><span class="qbtn-name">Alice Wanjiru</span><span class="qbtn-role role-admin">Admin · AlphaFund</span></button>
+            <button class="qbtn" onclick="quickLogin('bob','pass123')"><span class="qbtn-name">Bob Otieno</span><span class="qbtn-role role-analyst">Analyst · AlphaFund</span></button>
+            <button class="qbtn" onclick="quickLogin('carol','pass123')"><span class="qbtn-name">Carol Muthoni</span><span class="qbtn-role role-viewer">Viewer · AlphaFund</span></button>
+            <button class="qbtn" onclick="quickLogin('dave','pass123')"><span class="qbtn-name">Dave Kamau</span><span class="qbtn-role role-admin">Admin · BetaCapital</span></button>
+            <button class="qbtn" onclick="quickLogin('eve','pass123')"><span class="qbtn-name">Eve Njeri</span><span class="qbtn-role role-analyst">Analyst · BetaCapital</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══════════════════════════════════════════════ -->
+<div id="pg-app">
+  <header class="topbar">
+    <div class="tb-brand">
+      <div class="tb-brand-ic">📈</div>
+      <div class="tb-brand-name">StockIQ</div>
+    </div>
+    <div class="tb-div"></div>
+    <div class="tb-page" id="tb-page">Dashboard</div>
+    <div class="tb-space"></div>
+    <div class="tb-avl" id="tb-avl" title="AVL Tree Stats">🌳 h=0</div>
+    <div class="tb-user">
+      <div class="avatar" id="tb-av">?</div>
+      <div><div class="tb-uname" id="tb-uname">—</div><div class="tb-urole" id="tb-urole">—</div></div>
+    </div>
+    <button class="btn btn-out btn-sm" onclick="doLogout()">Sign Out</button>
+  </header>
+  <div class="app-body">
+    <nav class="sidebar" id="sidebar">
+      <div class="sb-sec">
+        <div class="sb-lbl">Main</div>
+        <div class="ni on" data-p="dash" onclick="nav('dash')"><span class="ni-ic">⊞</span>Dashboard</div>
+        <div class="ni" data-p="stocks" onclick="nav('stocks')"><span class="ni-ic">📊</span>Stock Query</div>
+      </div>
+      <div class="sb-sec" id="sb-analyst" style="display:none">
+        <div class="sb-lbl">Analytics</div>
+        <div class="ni" data-p="alerts" onclick="nav('alerts')"><span class="ni-ic">🔔</span>Price Alerts</div>
+        <div class="ni" data-p="topk" onclick="nav('topk')"><span class="ni-ic">🏆</span>Top Performers</div>
+      </div>
+      <div class="sb-sec" id="sb-admin" style="display:none">
+        <div class="sb-lbl">Administration</div>
+        <div class="ni" data-p="users" onclick="nav('users')"><span class="ni-ic">👥</span>Users</div>
+        <div class="ni" data-p="audit" onclick="nav('audit')"><span class="ni-ic">📋</span>Audit Log</div>
+        <div class="ni" data-p="perms" onclick="nav('perms')"><span class="ni-ic">🔗</span>Permissions</div>
+      </div>
+      <div class="sb-sec">
+        <div class="sb-lbl">DSA</div>
+        <div class="ni" data-p="avl" onclick="nav('avl')"><span class="ni-ic">🌳</span>AVL Inspector</div>
+        <div class="ni" data-p="load" onclick="nav('load')"><span class="ni-ic">⚡</span>Load Test 1M+</div>
+      </div>
+      <div class="sb-bot">
+        <div class="ni" data-p="profile" onclick="nav('profile')"><span class="ni-ic">👤</span>My Profile</div>
+      </div>
+    </nav>
+    <main class="main" id="main">
+
+      <!-- DASHBOARD -->
+      <div class="page on" id="p-dash">
+        <div class="ph"><div class="ph-left"><div class="ph-title">Dashboard</div><div class="ph-sub">Welcome back, <span id="d-greeting"></span> — <span id="d-tenant"></span></div></div><div class="ph-actions"><button class="btn btn-p btn-sm" onclick="nav('stocks')">📊 Query Stocks</button></div></div>
+        <div class="stat-grid">
+          <div class="stat"><div class="stat-ic blue">📊</div><div class="stat-lbl">Total AVL Nodes</div><div class="stat-val" id="s-nodes">—</div><div class="stat-note" id="s-nodes-n">stock records across all tickers</div></div>
+          <div class="stat"><div class="stat-ic green">👥</div><div class="stat-lbl">Active Users</div><div class="stat-val" id="s-users">—</div><div class="stat-note">in your tenant</div></div>
+          <div class="stat"><div class="stat-ic amber">📋</div><div class="stat-lbl">Audit Entries</div><div class="stat-val" id="s-audit">—</div><div class="stat-note" id="s-audit-n">immutable append-only AVL</div></div>
+          <div class="stat"><div class="stat-ic purple">🌳</div><div class="stat-lbl">AVL Max Height</div><div class="stat-val" id="s-height">—</div><div class="stat-note" id="s-height-n">O(log n) guaranteed</div></div>
+        </div>
+        <div class="g2">
+          <div class="card"><div class="ch"><div><div class="ch-title">Recent Activity</div><div class="ch-sub">Your last actions (from audit AVL)</div></div></div><div class="cb" id="d-recent"></div></div>
+          <div class="card"><div class="ch"><div><div class="ch-title">AVL Tree Metrics</div><div class="ch-sub">Live system statistics</div></div></div><div class="cb" id="d-avl"></div></div>
+        </div>
+        <div class="g3" style="margin-top:16px">
+          <div class="card"><div class="ch"><div><div class="ch-title">Price Trend</div><div class="ch-sub" id="d-trend-sub">—</div></div></div><div class="cb" id="d-trend"></div></div>
+          <div class="card"><div class="ch"><div><div class="ch-title">Top Tickers by Queries</div><div class="ch-sub">Live query counts</div></div></div><div class="cb" id="d-bars"></div></div>
+          <div class="card"><div class="ch"><div><div class="ch-title">User Roles</div><div class="ch-sub">Tenant composition</div></div></div><div class="cb" id="d-donut"></div></div>
+        </div>
+      </div>
+
+      <!-- STOCK QUERY -->
+      <div class="page" id="p-stocks">
+        <div class="ph"><div class="ph-left"><div class="ph-title">Stock Query</div><div class="ph-sub">AVL Tree range query — O(log n + k) per search</div></div></div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="ch"><div class="ch-title">Search Parameters</div></div>
+          <div class="cb">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:flex-end">
+              <div><div class="flabel">Ticker</div><select id="q-tick" class="finput"><option>AAPL</option><option>MSFT</option><option>GOOGL</option><option>AMZN</option><option>TSLA</option><option>NVDA</option><option>META</option></select></div>
+              <div><div class="flabel">From Date</div><input type="date" id="q-from" class="finput" value="2023-01-01"></div>
+              <div><div class="flabel">To Date</div><input type="date" id="q-to" class="finput" value="2023-12-31"></div>
+              <button class="btn btn-p" onclick="runQuery()" id="q-btn">Search →</button>
+            </div>
+          </div>
+        </div>
+        <div id="q-metrics" style="display:none">
+          <div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
+            <div class="stat"><div class="stat-lbl">Records Found</div><div class="stat-val" style="color:var(--p)" id="qm-n">—</div></div>
+            <div class="stat"><div class="stat-lbl">Max Close</div><div class="stat-val" id="qm-max">—</div></div>
+            <div class="stat"><div class="stat-lbl">Min Close</div><div class="stat-val" id="qm-min">—</div></div>
+            <div class="stat"><div class="stat-lbl">Query Time</div><div class="stat-val" style="color:var(--ok)" id="qm-ms">—</div></div>
+          </div>
+        </div>
+        <div class="card" id="q-results" style="display:none">
+          <div class="ch"><div><div class="ch-title" id="q-title">Results</div></div><span class="bdg bdg-blue">AVL range(lo,hi)</span></div>
+          <div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Volume</th><th>Δ Close</th></tr></thead><tbody id="q-tbody"></tbody></table></div>
+          <div class="cf"><div class="pager" id="q-pager"></div></div>
+        </div>
+        <div class="empty" id="q-empty" style="display:none"><div class="empty-ic">🔍</div><div class="empty-title">No records found</div><div class="empty-sub">Try a different ticker or wider date range</div></div>
+      </div>
+
+      <!-- ALERTS -->
+      <div class="page" id="p-alerts">
+        <div class="ph"><div class="ph-left"><div class="ph-title">Price Alerts</div><div class="ph-sub">AVL Tree keyed by threshold — O(log n) range check</div></div><button class="btn btn-p btn-sm" onclick="openModal('m-alert')">+ New Alert</button></div>
+        <div id="alerts-body"></div>
+      </div>
+
+      <!-- TOP-K -->
+      <div class="page" id="p-topk">
+        <div class="ph"><div class="ph-left"><div class="ph-title">Top Performers</div><div class="ph-sub">Most queried tickers — AVL in-order traversal</div></div></div>
+        <div id="topk-body"></div>
+      </div>
+
+      <!-- USERS -->
+      <div class="page" id="p-users">
+        <div class="ph"><div class="ph-left"><div class="ph-title">User Management</div><div class="ph-sub">AVL Tree — tenantId::userId keyed, O(log n) lookup</div></div><button class="btn btn-p btn-sm" onclick="openModal('m-adduser')">+ Add User</button></div>
+        <div id="users-body"></div>
+      </div>
+
+      <!-- AUDIT -->
+      <div class="page" id="p-audit">
+        <div class="ph"><div class="ph-left"><div class="ph-title">Audit Log</div><div class="ph-sub">Append-only AVL Tree — ImmutableLogError on delete</div></div></div>
+        <div id="audit-body"></div>
+      </div>
+
+      <!-- PERMISSIONS -->
+      <div class="page" id="p-perms">
+        <div class="ph"><div class="ph-left"><div class="ph-title">Cross-Tenant Permissions</div><div class="ph-sub">AVL Tree keyed by from::to::ticker</div></div></div>
+        <div id="perms-body"></div>
+      </div>
+
+      <!-- AVL INSPECTOR -->
+      <div class="page" id="p-avl">
+        <div class="ph"><div class="ph-left"><div class="ph-title">AVL Tree Inspector</div><div class="ph-sub">Insert, search, delete — all 4 rotation cases with live trace</div></div></div>
+        <div id="avl-body"></div>
+      </div>
+
+      <!-- LOAD TEST -->
+      <div class="page" id="p-load">
+        <div class="ph"><div class="ph-left"><div class="ph-title">Load Test — 1M+ Transactions</div><div class="ph-sub">Chunked async insert via requestAnimationFrame — UI never freezes</div></div></div>
+        <div id="load-body"></div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="page" id="p-profile">
+        <div class="ph"><div class="ph-left"><div class="ph-title">My Profile</div></div></div>
+        <div id="profile-body"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toasts"></div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="m-adduser">
+  <div class="modal">
+    <div class="modal-title">Add New User</div>
+    <div class="modal-sub">User will be inserted into this tenant's AVL Tree — O(log n)</div>
+    <div class="err-box" id="au-err"><span>⚠️</span><span id="au-err-txt"></span></div>
+    <div class="fg"><label class="flabel">Username</label><input class="finput" id="au-uid" placeholder="e.g. john_doe"></div>
+    <div class="fg"><label class="flabel">Full Name</label><input class="finput" id="au-name" placeholder="e.g. John Doe"></div>
+    <div class="fg"><label class="flabel">Password</label><input class="finput" type="password" id="au-pwd" placeholder="min 6 characters"></div>
+    <div class="fg"><label class="flabel">Role</label><select class="finput" id="au-role"><option value="1">Viewer</option><option value="2">Analyst</option><option value="3">Admin</option></select></div>
+    <div class="modal-actions"><button class="btn btn-out" onclick="closeModal('m-adduser')">Cancel</button><button class="btn btn-p" onclick="submitAddUser()">Add User</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="m-alert">
+  <div class="modal">
+    <div class="modal-title">Set Price Alert</div>
+    <div class="modal-sub">Stored in tenant's Alert AVL Tree keyed by threshold</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="fg"><label class="flabel">Ticker</label><select class="finput" id="al-tick"><option>AAPL</option><option>MSFT</option><option>GOOGL</option><option>AMZN</option><option>TSLA</option><option>NVDA</option><option>META</option></select></div>
+      <div class="fg"><label class="flabel">Condition</label><select class="finput" id="al-cond"><option value="above">Price Above ↑</option><option value="below">Price Below ↓</option></select></div>
+    </div>
+    <div class="fg"><label class="flabel">Threshold ($)</label><input type="number" class="finput" id="al-thr" step="0.01" placeholder="e.g. 180.00"></div>
+    <div class="modal-actions"><button class="btn btn-out" onclick="closeModal('m-alert')">Cancel</button><button class="btn btn-p" onclick="submitAlert()">Set Alert</button></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ══════════════════════════════════════════════════════════════════════════════
+//  SECURITY  — SHA-256, UUID4, sanitize, rate limiter
+// ══════════════════════════════════════════════════════════════════════════════
+const Sec = {
+  async sha256(s){
+    const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
+    return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+  },
+  uuid(){
+    try{return crypto.randomUUID();}
+    catch{return'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+      const r=crypto.getRandomValues(new Uint8Array(1))[0]%16;
+      return(c==='x'?r:(r&3|8)).toString(16);
+    });}
+  },
+  esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');},
+  _rl:new Map(),
+  checkRate(k,max=5,ms=900000){
+    const now=Date.now(),r=this._rl.get(k)||{n:0,t:now};
+    if(now-r.t>ms){r.n=0;r.t=now;}
+    if(r.n>=max)return false;
+    r.n++;this._rl.set(k,r);return true;
+  },
+  resetRate(k){this._rl.delete(k);}
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  AVL TREE — Self-Balancing BST
+//  The SOLE data structure backing all persistent storage in this system.
+//  O(log n) insert | O(log n) search | O(log n) delete | O(log n + k) range
+// ══════════════════════════════════════════════════════════════════════════════
+class AVLNode{
+  constructor(k,v){this.k=k;this.v=v;this.l=null;this.r=null;this.h=1;}
+}
+class AVL{
+  constructor(cmp,label='avl'){
+    this.root=null;this.size=0;this.label=label;
+    this._cmp=cmp||((a,b)=>a<b?-1:a>b?1:0); // fixed arrow syntax
+    this.rots=0; // rotation counter for DSA evidence
+  }
+  // ── height / balance helpers ───────────────────────────────────────────────
+  _h(n){return n?n.h:0;}
+  _bf(n){return n?this._h(n.l)-this._h(n.r):0;}
+  _uh(n){n.h=1+Math.max(this._h(n.l),this._h(n.r));}
+  // ── rotations ─────────────────────────────────────────────────────────────
+  _rotR(y){this.rots++;const x=y.l,T=x.r;x.r=y;y.l=T;this._uh(y);this._uh(x);return x;}
+  _rotL(x){this.rots++;const y=x.r,T=y.l;y.l=x;x.r=T;this._uh(x);this._uh(y);return y;}
+  // ── balance ───────────────────────────────────────────────────────────────
+  _bal(n){
+    this._uh(n);const b=this._bf(n);
+    if(b>1){ if(this._bf(n.l)<0)n.l=this._rotL(n.l); return this._rotR(n); }
+    if(b<-1){ if(this._bf(n.r)>0)n.r=this._rotR(n.r); return this._rotL(n); }
+    return n;
+  }
+  // ── insert O(log n) ───────────────────────────────────────────────────────
+  insert(k,v){
+    let isNew=false;
+    this.root=this._ins(this.root,k,v,()=>isNew=true);
+    if(isNew)this.size++;
+    return this;
+  }
+  _ins(n,k,v,cb){
+    if(!n){cb();return new AVLNode(k,v);}
+    const c=this._cmp(k,n.k);
+    if(c<0)n.l=this._ins(n.l,k,v,cb);
+    else if(c>0)n.r=this._ins(n.r,k,v,cb);
+    else{n.v=v;return n;} // update existing key
+    return this._bal(n);
+  }
+  // ── get O(log n) ──────────────────────────────────────────────────────────
+  get(k){
+    let n=this.root;
+    while(n){const c=this._cmp(k,n.k);if(c<0)n=n.l;else if(c>0)n=n.r;else return n.v;}
+    return null;
+  }
+  has(k){return this.get(k)!==null;}
+  // ── delete O(log n) ───────────────────────────────────────────────────────
+  delete(k){
+    let gone=false;
+    this.root=this._del(this.root,k,()=>gone=true);
+    if(gone)this.size--;
+    return gone;
+  }
+  _del(n,k,cb){
+    if(!n)return null;
+    const c=this._cmp(k,n.k);
+    if(c<0)n.l=this._del(n.l,k,cb);
+    else if(c>0)n.r=this._del(n.r,k,cb);
+    else{
+      cb();
+      if(!n.l)return n.r;
+      if(!n.r)return n.l;
+      // two children → replace with in-order successor (min of right sub-tree)
+      let s=n.r;while(s.l)s=s.l;
+      n.k=s.k;n.v=s.v;
+      n.r=this._del(n.r,s.k,()=>{});
+    }
+    return n?this._bal(n):null;
+  }
+  // ── range query O(log n + k) ──────────────────────────────────────────────
+  range(lo,hi){const out=[];this._rng(this.root,lo,hi,out);return out;}
+  _rng(n,lo,hi,out){
+    if(!n)return;
+    const cL=this._cmp(n.k,lo),cH=this._cmp(n.k,hi);
+    if(cL<0){this._rng(n.r,lo,hi,out);return;}     // n.k < lo → go right only
+    if(cH>0){this._rng(n.l,lo,hi,out);return;}     // n.k > hi → go left only
+    this._rng(n.l,lo,hi,out);                       // lo ≤ n.k ≤ hi
+    out.push({k:n.k,v:n.v});
+    this._rng(n.r,lo,hi,out);
+  }
+  // ── traversal ─────────────────────────────────────────────────────────────
+  inorder(){const o=[];this._io(this.root,o);return o;}
+  _io(n,o){if(!n)return;this._io(n.l,o);o.push({k:n.k,v:n.v});this._io(n.r,o);}
+  values(){return this.inorder().map(e=>e.v);}
+  // ── min / max ─────────────────────────────────────────────────────────────
+  min(){let n=this.root;while(n?.l)n=n.l;return n?{k:n.k,v:n.v}:null;}
+  max(){let n=this.root;while(n?.r)n=n.r;return n?{k:n.k,v:n.v}:null;}
+  height(){return this._h(this.root);}
+  // ── tail (last N entries) ─────────────────────────────────────────────────
+  tail(n){const a=this.inorder();return a.slice(Math.max(0,a.length-n));}
+  // ── floor (largest key ≤ target) ─────────────────────────────────────────
+  floor(t){let res=null,n=this.root;while(n){const c=this._cmp(t,n.k);if(c===0)return{k:n.k,v:n.v};if(c>0){res={k:n.k,v:n.v};n=n.r;}else n=n.l;}return res;}
+  // ── text visualization for inspector ─────────────────────────────────────
+  viz(maxD=5){const L=[];this._viz(this.root,'',true,L,0,maxD);return L.join('\n')||'(empty)';}
+  _viz(n,pfx,isR,L,d,mx){
+    if(!n)return;
+    if(d>mx){L.push(`${pfx}${isR?'└──':'┌──'} …(${this.size} total)`);return;}
+    L.push(`${pfx}${isR?'└──':'┌──'} [${n.k}] h=${n.h} bf=${this._bf(n)}`);
+    const p=pfx+(isR?'    ':'│   ');
+    this._viz(n.r,p,false,L,d+1,mx);
+    this._viz(n.l,p,true, L,d+1,mx);
+  }
+}
+// Correct default comparator (fixed closure bug above)
+const strCmp=(a,b)=>a<b?-1:a>b?1:0;
+const numCmp=(a,b)=>a-b;
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  MODELS
+// ══════════════════════════════════════════════════════════════════════════════
+const Role={V:1,A:2,AD:3};
+const RN={1:'Viewer',2:'Analyst',3:'Admin'};
+
+class Tenant{constructor(id,name){this.id=id;this.name=name;this.at=Date.now();}}
+class User{constructor(uid,tid,name,hash,role){this.uid=uid;this.tid=tid;this.name=name;this.hash=hash;this.role=role;this.at=Date.now();this.active=true;}}
+class Session{constructor(tok,uid,tid,role){this.tok=tok;this.uid=uid;this.tid=tid;this.role=role;this.at=Date.now();this.exp=Date.now()+3600000;}
+  get ok(){return this.active!==false&&Date.now()<this.exp;}}
+class Stock{constructor(ticker,date,o,h,l,c,vol){this.ticker=ticker;this.date=date;this.o=o;this.h=h;this.l=l;this.c=c;this.vol=vol;}}
+class AuditE{constructor(uid,tid,act,det){this.id=Sec.uuid();this.uid=uid;this.tid=tid;this.act=act;this.det=det;this.ts=Date.now();}}
+class Alert{constructor(uid,tid,ticker,cond,thr){this.id=Sec.uuid();this.uid=uid;this.tid=tid;this.ticker=ticker;this.cond=cond;this.thr=thr;this.at=Date.now();this.hit=false;}}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SERVICES — backed exclusively by AVL Trees
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Tenant Service ────────────────────────────────────────────────────────────
+const TS={
+  _t:new AVL(strCmp,'TenantReg'),
+  add(id,name){const t=new Tenant(id,name);this._t.insert(id,t);return t;},
+  get(id){return this._t.get(id);},
+  all(){return this._t.values();}
+};
+
+// ── Auth Service ──────────────────────────────────────────────────────────────
+const AS={
+  // AVL<tenantId::userId, User>
+  _u:new AVL(strCmp,'UserReg'),
+  // AVL<token, Session>
+  _s:new AVL(strCmp,'SessionStore'),
+  _k:(tid,uid)=>`${tid}::${uid}`,
+
+  async addUser(tid,uid,name,pwd,role){
+    if(!tid||!uid||!name||!pwd)throw new Error('All fields are required');
+    if(pwd.length<6)throw new Error('Password must be at least 6 characters');
+    if(!/^[a-z0-9_]+$/i.test(uid))throw new Error('Username: letters, numbers, underscores only');
+    const k=AS._k(tid,uid);
+    if(AS._u.has(k))throw new Error(`Username "${uid}" already exists in this tenant`);
+    const hash=await Sec.sha256(pwd);
+    const u=new User(uid,tid,name,hash,role);
+    AS._u.insert(k,u);
+    Audit.log('SYSTEM',tid,'USER_CREATED',`${uid} (${RN[role]})`);
+    return u;
+  },
+
+  async login(uid,pwd){
+    // O(n) scan — in production, index by userId across tenants
+    const all=AS._u.inorder();
+    let found=null;
+    for(const{v}of all){if(v.uid===uid){found=v;break;}}
+    if(!found)throw new Error('Invalid username or password');
+    if(!found.active)throw new Error('Account deactivated — contact your admin');
+    const h=await Sec.sha256(pwd);
+    if(h!==found.hash)throw new Error('Invalid username or password');
+    const tok=Sec.uuid();
+    const sess=new Session(tok,found.uid,found.tid,found.role);
+    AS._s.insert(tok,sess);
+    Audit.log(found.uid,found.tid,'LOGIN','Session started');
+    return{tok,user:found,sess};
+  },
+
+  getSess(tok){
+    if(!tok)return null;
+    const s=AS._s.get(tok);
+    if(!s||!s.ok){if(s)AS._s.delete(tok);return null;}
+    return s;
+  },
+
+  logout(tok){
+    const s=AS._s.get(tok);
+    if(s){Audit.log(s.uid,s.tid,'LOGOUT','Session ended');AS._s.delete(tok);}
+  },
+
+  usersFor(tid){return AS._u.inorder().filter(e=>e.v.tid===tid).map(e=>e.v);},
+  getUser(tid,uid){return AS._u.get(AS._k(tid,uid));},
+
+  async updateRole(tid,uid,role,byUid){
+    const k=AS._k(tid,uid);const u=AS._u.get(k);
+    if(!u)throw new Error('User not found');
+    u.role=role;AS._u.insert(k,u);
+    Audit.log(byUid,tid,'ROLE_CHANGED',`${uid} → ${RN[role]}`);
+  },
+
+  async deactivate(tid,uid,byUid){
+    if(uid===byUid)throw new Error('Cannot deactivate your own account');
+    const k=AS._k(tid,uid);const u=AS._u.get(k);
+    if(!u)throw new Error('User not found');
+    u.active=false;AS._u.insert(k,u);
+    Audit.log(byUid,tid,'USER_DEACTIVATED',uid);
+  },
+
+  purgeExpired(){
+    let n=0;
+    AS._s.inorder().forEach(({k,v})=>{if(!v.ok){AS._s.delete(k);n++;}});
+    return n;
+  }
+};
+
+// ── Stock Service ─────────────────────────────────────────────────────────────
+const SS={
+  // AVL<tenantId::ticker, AVL<date, Stock>>
+  _idx:new AVL(strCmp,'StockIndex'),
+  // AVL<tenantId::ticker, count>
+  _qct:new AVL(strCmp,'QueryCount'),
+
+  _tree(tid,tick){
+    const k=`${tid}::${tick}`;
+    let t=SS._idx.get(k);
+    if(!t){t=new AVL(strCmp,k);SS._idx.insert(k,t);}
+    return t;
+  },
+
+  bulk(tid,tick,recs){const t=SS._tree(tid,tick);for(const r of recs)t.insert(r.date,r);},
+
+  query(tid,tick,from,to){
+    const k=`${tid}::${tick}`;
+    const t=SS._idx.get(k);if(!t)return[];
+    const res=t.range(from,to).map(e=>e.v);
+    // increment query counter (AVL insert/update)
+    SS._qct.insert(k,(SS._qct.get(k)||0)+1);
+    return res;
+  },
+
+  totalNodes(){let n=0;SS._idx.values().forEach(t=>n+=t.size);return n;},
+  maxH(){let h=0;SS._idx.values().forEach(t=>h=Math.max(h,t.height()));return h;},
+  totalRots(){let r=0;SS._idx.values().forEach(t=>r+=t.rots);return r;},
+  treeCount(){return SS._idx.size;},
+
+  treeFor(tid,tick){return SS._tree(tid,tick);},
+
+  topK(tid,k=10){
+    return SS._qct.inorder()
+      .filter(e=>e.k.startsWith(tid+'::'))
+      .map(e=>({tick:e.k.split('::')[1],n:e.v}))
+      .sort((a,b)=>b.n-a.n).slice(0,k);
+  }
+};
+
+// ── Audit Service ─────────────────────────────────────────────────────────────
+const Audit={
+  _t:new AVL(strCmp,'AuditLog'), // AVL<ts::seq, AuditEntry>
+  _seq:0,
+  log(uid,tid,act,det=''){
+    const e=new AuditE(uid,tid,act,det);
+    const k=`${String(e.ts).padStart(16,'0')}::${String(this._seq++).padStart(10,'0')}`;
+    this._t.insert(k,e);return e;
+  },
+  delete(){throw new Error('ImmutableLogError: audit entries cannot be deleted');},
+  forTenant(tid,n=100){return this._t.inorder().filter(e=>e.v.tid===tid).map(e=>e.v).reverse().slice(0,n);},
+  all(n=200){return this._t.tail(n).map(e=>e.v).reverse();},
+  count(tid){return this._t.inorder().filter(e=>e.v.tid===tid).length;},
+  total(){return this._t.size;}
+};
+
+// ── Alert Service ─────────────────────────────────────────────────────────────
+const AL={
+  // AVL<tenantId, AVL<threshold::id, Alert>>
+  _idx:new AVL(strCmp,'AlertIndex'),
+  _tree(tid){
+    let t=AL._idx.get(tid);
+    if(!t){t=new AVL(strCmp,'Alerts::'+tid);AL._idx.insert(tid,t);}
+    return t;
+  },
+  add(a){AL._tree(a.tid).insert(`${a.thr.toFixed(8)}::${a.id}`,a);Audit.log(a.uid,a.tid,'ALERT_SET',`${a.ticker} ${a.cond} $${a.thr}`);},
+  remove(tid,id){
+    const t=AL._tree(tid);
+    const e=t.inorder().find(e=>e.v.id===id);
+    if(e)t.delete(e.k);
+  },
+  forTenant(tid){return AL._tree(tid).values();},
+  check(tid,ticker,price){
+    const hits=[];
+    AL._tree(tid).inorder().forEach(({v:a})=>{
+      if(a.ticker!==ticker||a.hit)return;
+      if((a.cond==='above'&&price>=a.thr)||(a.cond==='below'&&price<=a.thr)){
+        a.hit=true;hits.push(a);
+        Audit.log(a.uid,tid,'ALERT_HIT',`${ticker}@$${price} (thr:$${a.thr})`);
+      }
+    });
+    return hits;
+  }
+};
+
+// ── Permission Service ────────────────────────────────────────────────────────
+const PS={
+  _t:new AVL(strCmp,'PermTree'),
+  grant(from,to,tick,by){
+    const k=`${from}::${to}::${tick}`;
+    PS._t.insert(k,{from,to,tick,by,at:Date.now()});
+    Audit.log(by,from,'PERM_GRANT',`${to} → ${tick}`);
+  },
+  check(req,owner,tick){
+    if(req===owner)return true;
+    return PS._t.has(`${owner}::${req}::${tick}`);
+  },
+  list(tid){return PS._t.inorder().filter(e=>e.v.from===tid||e.v.to===tid).map(e=>e.v);}
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  APP STATE
+// ══════════════════════════════════════════════════════════════════════════════
+const App={
+  tok:null,sess:null,user:null,
+  qRecs:[],qPage:1,qPS:25,
+  avlTree:new AVL(numCmp,'Inspector'),avlLog:[],
+  stressRun:false,
+  get tid(){return this.sess?.tid;},
+  get role(){return this.sess?.role||0;},
+  isAdmin(){return this.role>=Role.AD;},
+  isAnalyst(){return this.role>=Role.A;},
+  set(tok,user,sess){this.tok=tok;this.user=user;this.sess=sess;},
+  clear(){this.tok=null;this.sess=null;this.user=null;}
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  UI UTILITIES
+// ══════════════════════════════════════════════════════════════════════════════
+const AC=['#2563eb','#7c3aed','#059669','#d97706','#dc2626','#0284c7'];
+function av(name,i){
+  const c=AC[i%AC.length],letter=Sec.esc((name||'?')[0].toUpperCase());
+  return `<div class="avatar" style="background:${c}">${letter}</div>`;
+}
+function roleBdg(r){
+  const m={[Role.AD]:'<span class="bdg bdg-red">Admin</span>',[Role.A]:'<span class="bdg bdg-blue">Analyst</span>',[Role.V]:'<span class="bdg bdg-green">Viewer</span>'};
+  return m[r]||'<span class="bdg bdg-slate">—</span>';
+}
+function actIc(a){
+  const m={LOGIN:'🔑',LOGOUT:'🚪',STOCK_QUERY:'📊',USER_CREATED:'👤',ROLE_CHANGED:'🛡️',USER_DEACTIVATED:'🚫',ALERT_SET:'🔔',ALERT_HIT:'⚡',PERM_GRANT:'🔗'};
+  return m[a]||'📋';
+}
+function $d(ts){return new Date(ts).toLocaleString();}
+function $f(n,d=2){return typeof n==='number'?n.toFixed(d):'—';}
+function $n(n){return Number(n).toLocaleString();}
+function $$(id){return document.getElementById(id);}
+function openModal(id){$$(id).classList.add('open');}
+function closeModal(id){$$(id).classList.remove('open');}
+function mkRow(cols){return`<tr>${cols.map(c=>`<td>${c}</td>`).join('')}</tr>`;}
+function kv(l,v,extra=''){return`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--bdr)"><span style="font-size:13px;color:var(--t2)">${Sec.esc(l)}</span><span style="font-size:13px;font-weight:700;color:var(--t1)${extra}">${v}</span></div>`;}
+
+function toast(msg,type='',dur=3500){
+  const c=$$('toasts'),el=document.createElement('div');
+  el.className=`toast${type?' '+type:''}`;
+  const ic={ok:'✅',bad:'❌',warn:'⚠️'};
+  el.innerHTML=`<span>${ic[type]||'ℹ️'}</span><span>${Sec.esc(msg)}</span>`;
+  el.onclick=()=>el.remove();
+  c.appendChild(el);
+  setTimeout(()=>{el.style.cssText='opacity:0;transform:translateX(110%);transition:.25s';setTimeout(()=>el.remove(),250);},dur);
+}
+
+function updateBadge(){
+  const h=SS.maxH(),n=SS.totalNodes();
+  const el=$$('tb-avl');
+  if(!el)return;
+  el.textContent=`🌳 h=${h} | ${$n(n)} nodes`;
+  el.classList.add('pulse');
+  setTimeout(()=>el.classList.remove('pulse'),600);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  DASHBOARD CHARTS — hand-built inline SVG, driven by real seeded/service data
+// ══════════════════════════════════════════════════════════════════════════════
+function sparkPath(vals,w,h,pad=6){
+  if(!vals.length)return{path:'',area:''};
+  const min=Math.min(...vals),max=Math.max(...vals);
+  const span=(max-min)||1;
+  const stepX=(w-pad*2)/((vals.length-1)||1);
+  const pts=vals.map((v,i)=>{
+    const x=pad+i*stepX;
+    const y=h-pad-((v-min)/span)*(h-pad*2);
+    return[x,y];
+  });
+  const path=pts.map((p,i)=>(i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const area=path+` L${pts[pts.length-1][0].toFixed(1)},${h-pad} L${pts[0][0].toFixed(1)},${h-pad} Z`;
+  return{path,area};
+}
+function renderTrend(tid){
+  const TICKERS=['AAPL','MSFT','GOOGL','AMZN','TSLA','NVDA','META'];
+  let tick=null,tree=null;
+  for(const t of TICKERS){const tr=SS.treeFor(tid,t);if(tr&&tr.size){tick=t;tree=tr;break;}}
+  const el=$$('d-trend'),sub=$$('d-trend-sub');
+  if(!el)return;
+  if(!tree){el.innerHTML='<div class="empty" style="padding:20px"><div class="empty-sub">No stock data yet</div></div>';return;}
+  const recs=tree.tail(60).map(e=>e.v);
+  const closes=recs.map(r=>r.c);
+  const{path,area}=sparkPath(closes,320,120);
+  const first=closes[0],last=closes[closes.length-1];
+  const pct=((last-first)/first*100).toFixed(2);
+  if(sub)sub.textContent=`${tick} · last ${closes.length} sessions · ${pct>=0?'+':''}${pct}%`;
+  el.innerHTML=`<svg class="spark-svg" viewBox="0 0 320 120" preserveAspectRatio="none">
+    <defs><linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#caff33" stop-opacity=".35"/>
+      <stop offset="100%" stop-color="#caff33" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#sparkFill)" stroke="none"/>
+    <path d="${path}" fill="none" stroke="#caff33" stroke-width="2"/>
+  </svg>
+  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--t3);margin-top:4px">
+    <span>$${$f(Math.min(...closes))}</span><span>$${$f(Math.max(...closes))}</span>
+  </div>`;
+}
+function renderBars(tid){
+  const top=SS.topK(tid,5);
+  const el=$$('d-bars');
+  if(!el)return;
+  if(!top.length){el.innerHTML='<div class="empty" style="padding:20px"><div class="empty-sub">Run stock queries to populate this</div></div>';return;}
+  const mx=top[0].n;
+  el.innerHTML=`<div class="bar-chart">${top.map((t,i)=>`
+    <div class="bar-col">
+      <div class="bar-val">${t.n}</div>
+      <div class="bar-fill" style="height:${Math.max(6,(t.n/mx*100))}%;background:${AC[i%AC.length]}"></div>
+      <div class="bar-lbl">${Sec.esc(t.tick)}</div>
+    </div>`).join('')}</div>`;
+}
+function renderDonut(tid){
+  const users=AS.usersFor(tid);
+  const el=$$('d-donut');
+  if(!el)return;
+  if(!users.length){el.innerHTML='<div class="empty" style="padding:20px"><div class="empty-sub">No users</div></div>';return;}
+  const counts={1:0,2:0,3:0};
+  users.forEach(u=>counts[u.role]=(counts[u.role]||0)+1);
+  const total=users.length;
+  const segColors={1:'#4ade80',2:'#38bdf8',3:'#fb7185'};
+  const segLabels={1:'Viewer',2:'Analyst',3:'Admin'};
+  let offset=0;const R=42,C=2*Math.PI*R;
+  const activeRoles=[1,2,3].filter(r=>counts[r]>0);
+  const segs=activeRoles.map(r=>{
+    const frac=counts[r]/total,len=frac*C;
+    const seg=`<circle cx="60" cy="60" r="${R}" fill="none" stroke="${segColors[r]}" stroke-width="16" stroke-dasharray="${len.toFixed(1)} ${(C-len).toFixed(1)}" stroke-dashoffset="${(-offset).toFixed(1)}" transform="rotate(-90 60 60)"/>`;
+    offset+=len;return seg;
+  }).join('');
+  el.innerHTML=`<div class="donut-wrap">
+    <svg width="120" height="120" viewBox="0 0 120 120">${segs}</svg>
+    <div class="donut-legend">${activeRoles.map(r=>`
+      <div class="donut-legend-item"><span class="donut-dot" style="background:${segColors[r]}"></span>${segLabels[r]} · ${counts[r]}</div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════════════════════════════════
+const PAGE_TITLES={dash:'Dashboard',stocks:'Stock Query',alerts:'Price Alerts',topk:'Top Performers',users:'User Management',audit:'Audit Log',perms:'Permissions',avl:'AVL Inspector',load:'Load Test 1M+',profile:'My Profile'};
+const ADMIN_PAGES=['users','audit','perms'];
+const ANALYST_PAGES=['alerts','topk'];
+
+function nav(p){
+  if(!App.sess){toast('Please sign in first','bad');return;}
+  if(ADMIN_PAGES.includes(p)&&!App.isAdmin()){toast('Admin access required','bad');return;}
+  if(ANALYST_PAGES.includes(p)&&!App.isAnalyst()){toast('Analyst access required','bad');return;}
+
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(el=>el.classList.remove('on'));
+  const pg=$$('p-'+p),ni=document.querySelector(`[data-p="${p}"]`);
+  if(pg)pg.classList.add('on');
+  if(ni)ni.classList.add('on');
+  App.currentPage=p;
+  const tb=$$('tb-page');if(tb)tb.textContent=PAGE_TITLES[p]||p;
+
+  const renders={dash:rDash,stocks:rStocks,alerts:rAlerts,topk:rTopK,users:rUsers,audit:rAudit,perms:rPerms,avl:rAVL,load:rLoad,profile:rProfile};
+  try{if(renders[p])renders[p]();}catch(e){console.error('render error',p,e);}
+  window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  AUTH HANDLERS
+// ══════════════════════════════════════════════════════════════════════════════
+async function doLogin(){
+  const uid=$$('lg-u').value.trim();
+  const pwd=$$('lg-p').value;
+  const errBox=$$('lg-err'),errTxt=$$('lg-err-txt');
+  const btn=$$('lg-btn');
+  errBox.classList.remove('show');
+  if(!uid||!pwd){errTxt.textContent='Enter your username and password.';errBox.classList.add('show');return;}
+  if(!Sec.checkRate('login::'+uid)){errTxt.textContent='Too many attempts — wait 15 minutes.';errBox.classList.add('show');return;}
+  btn.disabled=true;btn.textContent='Signing in…';
+  try{
+    const{tok,user,sess}=await AS.login(uid,pwd);
+    App.set(tok,user,sess);Sec.resetRate('login::'+uid);
+    showApp();
+  }catch(e){errTxt.textContent=e.message;errBox.classList.add('show');}
+  finally{btn.disabled=false;btn.textContent='Sign In →';}
+}
+function quickLogin(u,p){$$('lg-u').value=u;$$('lg-p').value=p;doLogin();}
+function doLogout(){
+  AS.logout(App.tok);App.clear();
+  $$('pg-app').style.display='none';$$('pg-app').classList.remove('on');
+  $$('pg-login').style.display='flex';
+  $$('lg-u').value='';$$('lg-p').value='';
+  $$('sb-analyst').style.display='none';
+  $$('sb-admin').style.display='none';
+}
+function showApp(){
+  $$('pg-login').style.display='none';
+  $$('pg-app').style.display='flex';$$('pg-app').classList.add('on');
+  const u=App.user;
+  const av=$$('tb-av');av.textContent=u.name[0].toUpperCase();av.style.background=AC[u.role%AC.length];
+  $$('tb-uname').textContent=u.name;
+  $$('tb-urole').textContent=`${RN[u.role]} · ${App.tid}`;
+  if(App.isAnalyst())$$('sb-analyst').style.display='block';
+  if(App.isAdmin())$$('sb-admin').style.display='block';
+  updateBadge();nav('dash');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  PAGE RENDERERS
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+function rDash(){
+  const tid=App.tid;
+  const nodes=SS.totalNodes(),users=AS.usersFor(tid).length,aud=Audit.count(tid),h=SS.maxH();
+  $$('s-nodes').textContent=$n(nodes);
+  $$('s-nodes-n').textContent=`across ${SS.treeCount()} AVL trees`;
+  $$('s-users').textContent=users;
+  $$('s-audit').textContent=$n(aud);
+  $$('s-audit-n').textContent='append-only, never deleted';
+  $$('s-height').textContent=h;
+  $$('s-height-n').textContent=`O(log ${$n(nodes)}) ≈ ${h} levels`;
+  $$('d-greeting').textContent=App.user.name;
+  $$('d-tenant').textContent=App.tid;
+
+  // Recent activity
+  const recents=Audit.forTenant(tid,6);
+  $$('d-recent').innerHTML=recents.length?recents.map(e=>`
+    <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--bdr);align-items:flex-start">
+      <span style="font-size:18px;line-height:1">${actIc(e.act)}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700">${Sec.esc(e.act)}</div>
+        <div style="font-size:12px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${Sec.esc(e.det)} · ${Sec.esc(e.uid)}</div>
+      </div>
+      <div style="font-size:11px;color:var(--t3);flex-shrink:0">${$d(e.ts)}</div>
+    </div>`).join('')
+    :'<div class="empty" style="padding:24px"><div class="empty-ic">📋</div><div class="empty-sub">No activity yet</div></div>';
+
+  // AVL metrics
+  $$('d-avl').innerHTML=[
+    kv('Stock AVL Trees (index)',`${SS.treeCount()} trees`),
+    kv('Total AVL Nodes',`${$n(nodes)}`,''),
+    kv('Max Tree Height',`${h}`,''),
+    kv('Theoretical max (1.44 log₂ n)',`${Math.ceil(1.44*Math.log2(nodes+1))} levels`,''),
+    kv('Total AVL Rotations',`${$n(SS.totalRots())}`,''),
+    kv('Audit AVL size',`${$n(Audit.total())} entries`,''),
+    kv('Active sessions',`${AS._s.size}`,''),
+  ].join('');
+
+  // New chart widgets — all driven by real data
+  renderTrend(tid);
+  renderBars(tid);
+  renderDonut(tid);
+}
+
+// ── Stock Query ────────────────────────────────────────────────────────────────
+function rStocks(){
+  $$('q-results').style.display='none';
+  $$('q-empty').style.display='none';
+  $$('q-metrics').style.display='none';
+}
+
+async function runQuery(){
+  const tick=$$('q-tick').value,from=$$('q-from').value,to=$$('q-to').value;
+  const btn=$$('q-btn');
+  if(!from||!to){toast('Select both dates','bad');return;}
+  if(from>to){toast('From must be before To','bad');return;}
+  btn.disabled=true;btn.textContent='Searching…';
+  $$('q-results').style.display='none';
+  $$('q-empty').style.display='none';
+  $$('q-metrics').style.display='none';
+  try{
+    const t0=performance.now();
+    const recs=SS.query(App.tid,tick,from,to);
+    const ms=(performance.now()-t0).toFixed(2);
+    Audit.log(App.user.uid,App.tid,'STOCK_QUERY',`${tick}[${from}→${to}] ${recs.length}rows ${ms}ms`);
+    updateBadge();
+    if(!recs.length){$$('q-empty').style.display='block';toast('No records in that range','warn');return;}
+    const closes=recs.map(r=>r.c);
+    $$('qm-n').textContent=$n(recs.length);
+    $$('qm-max').textContent='$'+$f(Math.max(...closes));
+    $$('qm-min').textContent='$'+$f(Math.min(...closes));
+    $$('qm-ms').textContent=ms+'ms';
+    $$('q-metrics').style.display='block';
+    $$('q-title').textContent=`${tick} — ${$n(recs.length)} Records (${from} → ${to})`;
+    App.qRecs=recs;App.qPage=1;
+    renderQTable();
+    $$('q-results').style.display='block';
+    toast(`${$n(recs.length)} records found in ${ms}ms`,'ok');
+  }catch(e){toast(e.message,'bad');}
+  finally{btn.disabled=false;btn.textContent='Search →';}
+}
+
+function renderQTable(){
+  const{qRecs:r,qPage:p,qPS:ps}=App;
+  const s=(p-1)*ps,slice=r.slice(s,s+ps),total=Math.ceil(r.length/ps);
+  $$('q-tbody').innerHTML=slice.map((rec,i)=>{
+    const prev=r[s+i-1];const ch=prev?((rec.c-prev.c)/prev.c*100):0;
+    return mkRow([
+      `<span style="font-weight:700">${Sec.esc(rec.date)}</span>`,
+      '$'+$f(rec.o),'<span style="color:var(--ok)">$'+$f(rec.h)+'</span>',
+      '<span style="color:var(--err)">$'+$f(rec.l)+'</span>',
+      `<strong>$${$f(rec.c)}</strong>`,
+      $n(rec.vol),
+      `<span style="color:${ch>=0?'var(--ok)':'var(--err)'}">${ch>=0?'+':''}${$f(ch)}%</span>`
+    ]);
+  }).join('');
+  // Pager
+  if(total<=1){$$('q-pager').innerHTML='';return;}
+  let h=`<button class="pg" onclick="qPg(${p-1})" ${p===1?'disabled':''}>‹</button>`;
+  for(let i=Math.max(1,p-3);i<=Math.min(total,p+3);i++)
+    h+=`<button class="pg${i===p?' on':''}" onclick="qPg(${i})">${i}</button>`;
+  h+=`<button class="pg" onclick="qPg(${p+1})" ${p===total?'disabled':''}>›</button>`;
+  h+=`<span class="pg-info">Page ${p} of ${total} · ${$n(r.length)} records</span>`;
+  $$('q-pager').innerHTML=h;
+}
+function qPg(p){const m=Math.ceil(App.qRecs.length/App.qPS);if(p<1||p>m)return;App.qPage=p;renderQTable();}
+
+// ── Alerts ─────────────────────────────────────────────────────────────────────
+function rAlerts(){
+  const alerts=AL.forTenant(App.tid);
+  const el=$$('alerts-body');
+  if(!alerts.length){
+    el.innerHTML=`<div class="empty"><div class="empty-ic">🔔</div><div class="empty-title">No alerts set</div><div class="empty-sub">Use "+ New Alert" to set a price threshold stored in the AVL Tree</div></div>`;return;
+  }
+  el.innerHTML=`<div class="card"><div class="ch"><div class="ch-title">Active Price Alerts</div><span class="bdg bdg-blue">AVL keyed by threshold</span></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Ticker</th><th>Condition</th><th>Threshold</th><th>Status</th><th>Created</th><th></th></tr></thead>
+      <tbody>${alerts.map(a=>mkRow([
+        `<strong>${Sec.esc(a.ticker)}</strong>`,
+        a.cond==='above'?'📈 Above':'📉 Below',
+        `<strong>$${$f(a.thr)}</strong>`,
+        a.hit?'<span class="bdg bdg-amber">Triggered</span>':'<span class="bdg bdg-green">Active</span>',
+        `<span style="color:var(--t3);font-size:12px">${$d(a.at)}</span>`,
+        `<button class="btn btn-danger btn-xs" onclick="removeAlert('${Sec.esc(a.id)}')">Remove</button>`
+      ])).join('')}</tbody>
+    </table></div></div>`;
+}
+function submitAlert(){
+  const tick=$$('al-tick').value,cond=$$('al-cond').value,thr=parseFloat($$('al-thr').value);
+  if(isNaN(thr)||thr<=0){toast('Enter a valid threshold','bad');return;}
+  AL.add(new Alert(App.user.uid,App.tid,tick,cond,thr));
+  closeModal('m-alert');toast(`Alert set: ${tick} ${cond} $${thr}`,'ok');
+  $$('al-thr').value='';rAlerts();
+}
+function removeAlert(id){AL.remove(App.tid,id);toast('Alert removed');rAlerts();}
+
+// ── Top-K ─────────────────────────────────────────────────────────────────────
+function rTopK(){
+  const top=SS.topK(App.tid,10);
+  const el=$$('topk-body');
+  if(!top.length){el.innerHTML=`<div class="empty"><div class="empty-ic">🏆</div><div class="empty-title">No queries yet</div><div class="empty-sub">Run stock queries to populate the ranking</div></div>`;return;}
+  const mx=top[0].n;
+  el.innerHTML=`<div class="card"><div class="ch"><div class="ch-title">Most Queried Tickers</div><span class="bdg bdg-purple">AVL in-order traversal</span></div>
+    <div class="cb">${top.map((t,i)=>`
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+        <div style="font-size:18px;font-weight:900;color:var(--t3);width:28px">#${i+1}</div>
+        <div style="font-size:14px;font-weight:800;width:56px">${Sec.esc(t.tick)}</div>
+        <div style="flex:1"><div class="prog-bar-bg"><div class="prog-bar" style="width:${(t.n/mx*100).toFixed(0)}%;background:${AC[i%AC.length]}"></div></div></div>
+        <div style="font-size:13px;font-weight:700;color:var(--p);width:80px;text-align:right">${t.n} queries</div>
+      </div>`).join('')}</div></div>`;
+}
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+function rUsers(){
+  const users=AS.usersFor(App.tid);
+  $$('users-body').innerHTML=`<div class="card"><div class="ch">
+    <div><div class="ch-title">Tenant Users — ${App.tid}</div><div class="ch-sub">AVL keyed by tenantId::userId · ${users.length} nodes</div></div>
+  </div><div class="tbl-wrap"><table>
+    <thead><tr><th>User</th><th>Username</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+    <tbody>${users.map((u,i)=>`<tr>
+      <td><div style="display:flex;align-items:center;gap:10px">${av(u.name,i)}<strong>${Sec.esc(u.name)}</strong></div></td>
+      <td class="mono">${Sec.esc(u.uid)}</td>
+      <td>${roleBdg(u.role)}</td>
+      <td>${u.active!==false?'<span class="bdg bdg-green"><span class="dot dot-green"></span> Active</span>':'<span class="bdg bdg-slate">Inactive</span>'}</td>
+      <td style="font-size:12px;color:var(--t3)">${$d(u.at)}</td>
+      <td><div style="display:flex;gap:6px;align-items:center">
+        ${u.uid!==App.user.uid?`
+          <select class="finput" style="padding:4px 8px;font-size:12px;width:100px" onchange="chRole('${Sec.esc(u.uid)}',this.value)">
+            <option value="1" ${u.role===1?'selected':''}>Viewer</option>
+            <option value="2" ${u.role===2?'selected':''}>Analyst</option>
+            <option value="3" ${u.role===3?'selected':''}>Admin</option>
+          </select>
+          ${u.active!==false?`<button class="btn btn-danger btn-xs" onclick="deactivate('${Sec.esc(u.uid)}')">Deactivate</button>`:''}
+        `:'<span style="font-size:12px;color:var(--t3)">(you)</span>'}
+      </div></td>
+    </tr>`).join('')}</tbody>
+  </table></div></div>`;
+}
+async function chRole(uid,role){try{await AS.updateRole(App.tid,uid,+role,App.user.uid);toast(`Role updated for ${uid}`,'ok');rUsers();}catch(e){toast(e.message,'bad');}}
+async function deactivate(uid){
+  if(!confirm(`Deactivate "${uid}"?`))return;
+  try{await AS.deactivate(App.tid,uid,App.user.uid);toast(`${uid} deactivated`,'ok');rUsers();}catch(e){toast(e.message,'bad');}
+}
+async function submitAddUser(){
+  const uid=$$('au-uid').value.trim(),name=$$('au-name').value.trim();
+  const pwd=$$('au-pwd').value,role=+$$('au-role').value;
+  const eb=$$('au-err'),et=$$('au-err-txt');eb.classList.remove('show');
+  try{
+    await AS.addUser(App.tid,uid,name,pwd,role);
+    closeModal('m-adduser');
+    toast(`User "${uid}" added`,'ok');
+    $$('au-uid').value='';$$('au-name').value='';$$('au-pwd').value='';
+    rUsers();
+  }catch(e){et.textContent=e.message;eb.classList.add('show');}
+}
+
+// ── Audit ─────────────────────────────────────────────────────────────────────
+let auPg=1;const auPS=25;
+function rAudit(){
+  const all=Audit.forTenant(App.tid,500);
+  const total=Math.ceil(all.length/auPS);
+  const slice=all.slice((auPg-1)*auPS,auPg*auPS);
+  $$('audit-body').innerHTML=`
+    <div class="alert alert-info" style="margin-bottom:12px">🔒 <strong>Immutable:</strong> Every delete call throws <code>ImmutableLogError</code> — enforced at AVL tree level. These entries cannot be modified or removed.</div>
+    <div class="card"><div class="ch">
+      <div><div class="ch-title">Audit Log</div><div class="ch-sub">${$n(all.length)} entries · append-only AVL Tree</div></div>
+      <span class="bdg bdg-amber">ImmutableLogError on delete</span>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Detail</th></tr></thead>
+      <tbody>${slice.map(e=>`<tr>
+        <td class="mono" style="font-size:11px">${$d(e.ts)}</td>
+        <td><strong>${Sec.esc(e.uid)}</strong></td>
+        <td><span class="bdg bdg-blue">${Sec.esc(e.act)}</span></td>
+        <td style="color:var(--t2);font-size:12px">${Sec.esc(e.det)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+    <div class="cf"><div class="pager">
+      <button class="pg" onclick="auNav(${auPg-1})" ${auPg===1?'disabled':''}>‹</button>
+      ${Array.from({length:Math.min(total,7)},(_,i)=>`<button class="pg${i+1===auPg?' on':''}" onclick="auNav(${i+1})">${i+1}</button>`).join('')}
+      ${total>7?`<span class="pg-info">…${total} pages</span>`:''}
+      <button class="pg" onclick="auNav(${auPg+1})" ${auPg>=total?'disabled':''}>›</button>
+      <span class="pg-info">${$n(all.length)} total</span>
+    </div></div></div>`;
+}
+function auNav(p){const all=Audit.forTenant(App.tid,500);const m=Math.ceil(all.length/auPS);if(p<1||p>m)return;auPg=p;rAudit();}
+
+// ── Permissions ────────────────────────────────────────────────────────────────
+function rPerms(){
+  const grants=PS.list(App.tid);
+  const others=TS.all().filter(t=>t.id!==App.tid);
+  $$('perms-body').innerHTML=`<div class="g2">
+    <div class="card"><div class="ch"><div class="ch-title">Grant Dataset Access</div></div><div class="cb">
+      <div class="fg"><label class="flabel">Target Tenant</label>
+        <select class="finput" id="pm-to">${others.length?others.map(t=>`<option value="${Sec.esc(t.id)}">${Sec.esc(t.name)}</option>`).join(''):'<option disabled>No other tenants</option>'}</select>
+      </div>
+      <div class="fg"><label class="flabel">Ticker</label>
+        <select class="finput" id="pm-tick"><option>AAPL</option><option>MSFT</option><option>GOOGL</option><option>AMZN</option><option>TSLA</option><option>NVDA</option><option>META</option></select>
+      </div>
+      <button class="btn btn-p" onclick="grantPerm()">Grant Access →</button>
+    </div></div>
+    <div class="card"><div class="ch"><div class="ch-title">Existing Grants</div></div><div class="cb">
+      ${grants.length?grants.map(g=>`
+        <div style="padding:10px;border:1px solid var(--bdr);border-radius:var(--r);margin-bottom:8px">
+          <div style="font-weight:700;font-size:13px">${Sec.esc(g.from)} → ${Sec.esc(g.to)}</div>
+          <div style="font-size:12px;color:var(--t2)">${Sec.esc(g.tick)} · granted ${$d(g.at)}</div>
+        </div>`).join(''):'<div style="color:var(--t3);font-size:13px">No grants yet</div>'}
+    </div></div>
+  </div>`;
+}
+function grantPerm(){
+  const to=$$('pm-to')?.value,tick=$$('pm-tick')?.value;
+  if(!to){toast('No other tenant available','bad');return;}
+  PS.grant(App.tid,to,tick,App.user.uid);
+  toast(`Granted: ${to} can query ${tick}`,'ok');rPerms();
+}
+
+// ── AVL Inspector ─────────────────────────────────────────────────────────────
+function rAVL(){
+  $$('avl-body').innerHTML=`
+    <div class="g2">
+      <div class="card">
+        <div class="ch"><div class="ch-title">Interactive AVL Tree</div><span class="bdg bdg-purple">All 4 rotation cases</span></div>
+        <div class="cb">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+            <input type="number" id="avl-k" class="finput" placeholder="Key" style="width:110px">
+            <input type="text"   id="avl-v" class="finput" placeholder="Value" style="width:110px">
+            <button class="btn btn-p btn-sm" onclick="avlIns()">Insert</button>
+            <button class="btn btn-out btn-sm" onclick="avlGet()">Search</button>
+            <button class="btn btn-danger btn-sm" onclick="avlDel()">Delete</button>
+            <button class="btn btn-ghost btn-sm" onclick="avlReset()">Reset</button>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+            <button class="btn btn-out btn-sm" onclick="avlDemo('ll')">LL Demo</button>
+            <button class="btn btn-out btn-sm" onclick="avlDemo('rr')">RR Demo</button>
+            <button class="btn btn-out btn-sm" onclick="avlDemo('lr')">LR Demo</button>
+            <button class="btn btn-out btn-sm" onclick="avlDemo('rl')">RL Demo</button>
+          </div>
+          <div class="code-box" id="avl-viz" style="min-height:160px;white-space:pre">Insert keys or run a demo</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ch-title">Operation Trace</div><span class="bdg bdg-green">Step-by-step</span></div>
+        <div class="cb">
+          <div class="code-box" id="avl-trace" style="min-height:200px;white-space:pre"></div>
+          <div style="margin-top:16px;font-size:13px;font-weight:700;margin-bottom:8px;color:var(--t1)">Live System Tree Stats</div>
+          <div id="avl-sys"></div>
+        </div>
+      </div>
+    </div>`;
+  avlRefresh();avlSys();
+}
+function avlRefresh(){
+  const el=$$('avl-viz');if(!el)return;
+  const t=App.avlTree;
+  if(!t.size){el.textContent='Tree is empty.';return;}
+  const raw=`AVL "${t.label}" — ${t.size} nodes, height=${t.height()}, rotations=${t.rots}\n\n`+t.viz(6);
+  el.innerHTML=raw.replace(/\[([^\]]+)\]/g,'<span class="ck">[$1]</span>')
+    .replace(/h=(\d+)/g,'h=<span class="cv">$1</span>')
+    .replace(/bf=(-?\d+)/g,(m,b)=>`bf=<span style="color:${Math.abs(+b)<=1?'#86efac':'#f87171'}">${b}</span>`);
+}
+function avlLog(msg){
+  App.avlLog.push(msg);
+  const el=$$('avl-trace');if(!el)return;
+  el.innerHTML=App.avlLog.slice(-24).map(l=>
+    Sec.esc(l)
+      .replace(/FOUND|sorted|&#10003;/g,m=>`<span class="cs">${m}</span>`)
+      .replace(/NOT FOUND/g,'<span class="ce">NOT FOUND</span>')
+      .replace(/(===.*===)/g,'<span class="cw">$1</span>')
+  ).join('\n');
+}
+function avlSys(){
+  const el=$$('avl-sys');if(!el)return;
+  const rows=[];
+  SS._idx.inorder().filter(e=>e.k.startsWith(App.tid)).forEach(e=>{
+    rows.push(kv(e.k,`${e.v.size} nodes · h=${e.v.height()} · rots=${e.v.rots}`));
+  });
+  el.innerHTML=rows.join('')||'<span style="color:var(--t3);font-size:13px">No stock trees for this tenant</span>';
+}
+function avlIns(){
+  const k=parseFloat($$('avl-k').value),v=$$('avl-v').value||String(k);
+  if(isNaN(k)){toast('Enter a numeric key','bad');return;}
+  App.avlTree.insert(k,v);
+  avlLog(`INSERT(${k},"${v}") → size=${App.avlTree.size} height=${App.avlTree.height()} bf_root=${App.avlTree._bf(App.avlTree.root)}`);
+  avlRefresh();
+}
+function avlGet(){
+  const k=parseFloat($$('avl-k').value);if(isNaN(k)){toast('Enter a numeric key','bad');return;}
+  const r=App.avlTree.get(k);
+  avlLog(`SEARCH(${k}) → ${r!==null?`FOUND: "${r}" ✓`:'NOT FOUND'} — O(log n) = max ${App.avlTree.height()} comparisons`);
+}
+function avlDel(){
+  const k=parseFloat($$('avl-k').value);if(isNaN(k)){toast('Enter a numeric key','bad');return;}
+  const ok=App.avlTree.delete(k);
+  avlLog(`DELETE(${k}) → ${ok?`DELETED · size=${App.avlTree.size} height=${App.avlTree.height()}`:'NOT FOUND'}`);
+  avlRefresh();
+}
+function avlReset(){App.avlTree=new AVL(numCmp,'Inspector');App.avlLog=[];avlLog('Tree reset.');avlRefresh();}
+function avlDemo(type){
+  App.avlTree=new AVL(numCmp,'Inspector');App.avlLog=[];
+  const D={
+    ll:{keys:[30,20,10],label:'Left-Left (LL): 30→20→10 → RIGHT rotation at 30'},
+    rr:{keys:[10,20,30],label:'Right-Right (RR): 10→20→30 → LEFT rotation at 10'},
+    lr:{keys:[30,10,20],label:'Left-Right (LR): 30→10→20 → LEFT@10 then RIGHT@30'},
+    rl:{keys:[10,30,20],label:'Right-Left (RL): 10→30→20 → RIGHT@30 then LEFT@10'}
+  };
+  const d=D[type];
+  avlLog(`=== DEMO: ${d.label} ===`);
+  d.keys.forEach(k=>{
+    App.avlTree.insert(k,String(k));
+    avlLog(`  insert(${k}) → root=${App.avlTree.root?.k} height=${App.avlTree.height()} rotations=${App.avlTree.rots}`);
+  });
+  avlLog(`  in-order: [${App.avlTree.inorder().map(e=>e.k).join(', ')}] (always sorted ✓)`);
+  avlRefresh();
+}
+
+// ── Load Test ─────────────────────────────────────────────────────────────────
+function rLoad(){
+  $$('load-body').innerHTML=`
+    <div class="g2">
+      <div class="card"><div class="ch"><div class="ch-title">Configuration</div></div><div class="cb">
+        <div class="fg"><label class="flabel">Records to Insert</label>
+          <select class="finput" id="lt-n">
+            <option value="10000">10,000</option>
+            <option value="100000">100,000</option>
+            <option value="500000" selected>500,000</option>
+            <option value="1000000">1,000,000</option>
+          </select>
+        </div>
+        <div class="fg"><label class="flabel">Chunk Size</label>
+          <select class="finput" id="lt-chunk">
+            <option value="5000">5,000 per frame</option>
+            <option value="10000" selected>10,000 per frame</option>
+            <option value="25000">25,000 per frame</option>
+          </select>
+        </div>
+        <div class="alert alert-info">Uses <strong>requestAnimationFrame</strong> chunking — UI stays responsive throughout. AVL Tree height stays at O(log n) even at 1M nodes.</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-p" id="lt-btn" onclick="runLoad()">▶ Start Test</button>
+          <button class="btn btn-danger btn-sm" id="lt-stop" onclick="stopLoad()" style="display:none">■ Stop</button>
+        </div>
+        <div id="lt-prog" style="display:none;margin-top:16px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:700" id="lt-pct">0%</span>
+            <span style="font-size:12px;color:var(--t2)" id="lt-status"></span>
+          </div>
+          <div class="prog-bar-bg"><div class="prog-bar" id="lt-bar"></div></div>
+          <div class="note" id="lt-note"></div>
+        </div>
+      </div></div>
+      <div class="card"><div class="ch"><div class="ch-title">Results</div></div>
+        <div class="cb" id="lt-res"><div class="empty"><div class="empty-ic">⚡</div><div class="empty-title">Ready</div><div class="empty-sub">Run the test to benchmark AVL at scale</div></div></div>
+      </div>
+    </div>`;
+}
+
+async function runLoad(){
+  if(App.stressRun)return;
+  App.stressRun=true;
+  const N=+$$('lt-n').value,C=+$$('lt-chunk').value;
+  $$('lt-btn').disabled=true;$$('lt-stop').style.display='inline-flex';$$('lt-prog').style.display='block';
+  const tree=new AVL(numCmp,'LoadTest_'+Date.now());
+  const t0=Date.now();let i=0;
+
+  function chunk(){
+    if(!App.stressRun||i>=N){
+      const elapsed=((Date.now()-t0)/1000).toFixed(2);
+      const ips=Math.round(i/(Date.now()-t0)*1000);
+      const h=tree.height(),th=Math.ceil(1.44*Math.log2(i+1));
+      // Range query benchmark
+      const q0=performance.now();
+      const qr=tree.range(0,Math.min(9999,i));
+      const qms=(performance.now()-q0).toFixed(2);
+      $$('lt-res').innerHTML=[
+        kv('Records Inserted',$n(i)),
+        kv('Elapsed Time',elapsed+'s'),
+        kv('Insert Rate',$n(ips)+' records/sec'),
+        kv('AVL Tree Height',h),
+        kv('Theoretical max (1.44 log₂ n)',th),
+        kv('Height vs Theory',`${h} / ${th} (${((h/th)*100).toFixed(0)}%)`),
+        kv('Total Rotations',$n(tree.rots)+` (${(tree.rots/i).toFixed(2)}/insert avg)`),
+        kv('Range query [0, 9999]',`${qr.length} records in ${qms}ms`),
+        kv('Range query complexity',`O(log ${$n(i)} + k) ≈ O(${h} + ${qr.length})`),
+      ].join('');
+      toast(`✓ ${$n(i)} records in ${elapsed}s at ${$n(ips)} rec/s`,'ok');
+      App.stressRun=false;$$('lt-btn').disabled=false;$$('lt-stop').style.display='none';
+      updateBadge();return;
+    }
+    const end=Math.min(i+C,N);
+    for(;i<end&&App.stressRun;i++)tree.insert(i,i*1.0001);
+    const pct=Math.round(i/N*100);
+    const _bar=$$('lt-bar'),_pct=$$('lt-pct'),_sta=$$('lt-status'),_nt=$$('lt-note');
+    if(_bar)_bar.style.width=pct+'%';
+    if(_pct)_pct.textContent=pct+'%';
+    if(_sta)_sta.textContent=`${$n(i)} / ${$n(N)}`;
+    if(_nt)_nt.textContent=`height=${tree.height()} · rots=${$n(tree.rots)} · ${$n(Math.round(i/(Date.now()-t0)*1000))} rec/s`;
+    requestAnimationFrame(chunk);
+  }
+  requestAnimationFrame(chunk);
+}
+function stopLoad(){App.stressRun=false;$$('lt-btn').disabled=false;$$('lt-stop').style.display='none';toast('Test stopped','warn');}
+
+// ── Profile ────────────────────────────────────────────────────────────────────
+function rProfile(){
+  const u=App.user;
+  const myAudit=Audit.forTenant(App.tid,30).filter(e=>e.uid===u.uid).slice(0,8);
+  $$('profile-body').innerHTML=`<div class="g2">
+    <div class="card"><div class="ch"><div class="ch-title">Account Details</div></div><div class="cb">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px">
+        <div class="avatar" style="width:56px;height:56px;font-size:22px;background:${AC[u.role%AC.length]}">${u.name[0]}</div>
+        <div><div style="font-size:20px;font-weight:800">${Sec.esc(u.name)}</div><div style="color:var(--t2)">${Sec.esc(u.uid)} · ${Sec.esc(App.tid)}</div></div>
+      </div>
+      ${kv('Role',RoleName(u.role))}
+      ${kv('Tenant',App.tid)}
+      ${kv('Session expires',$d(App.sess.exp))}
+      ${kv('Account created',$d(u.at))}
+      ${kv('Password','SHA-256 hashed (SubtleCrypto API)')}
+    </div></div>
+    <div class="card"><div class="ch"><div class="ch-title">My Recent Activity</div></div><div class="cb">
+      ${myAudit.length?myAudit.map(e=>`
+        <div style="padding:9px 0;border-bottom:1px solid var(--bdr)">
+          <div style="font-size:13px;font-weight:700">${actIc(e.act)} ${Sec.esc(e.act)}</div>
+          <div style="font-size:12px;color:var(--t2)">${Sec.esc(e.det)} · ${$d(e.ts)}</div>
+        </div>`).join(''):'<div style="color:var(--t3);font-size:13px">No personal activity yet</div>'}
+    </div></div>
+  </div>`;
+}
+function RoleName(r){return RN[r]||'Unknown';}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  LOGIN PAGE — Animated Stock Price Line (decorative, replaces the AVL animation)
+// ══════════════════════════════════════════════════════════════════════════════
+(function initCanvas(){
+  const canvas=document.getElementById('login-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  let W,H;function resize(){W=canvas.width=canvas.offsetWidth;H=canvas.height=canvas.offsetHeight;}
+  resize();window.addEventListener('resize',resize);
+
+  // Procedural random-walk price line — purely decorative background motion
+  let series=[];const MAXPTS=80;let price=100;
+  for(let i=0;i<MAXPTS;i++){price=Math.max(20,price*(1+(Math.random()-.48)*.04));series.push(price);}
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    if(!W||!H)return;
+    const min=Math.min(...series),max=Math.max(...series),span=(max-min)||1;
+    const stepX=W/(series.length-1);
+    ctx.beginPath();
+    series.forEach((v,i)=>{
+      const x=i*stepX,y=H*.75-((v-min)/span)*(H*.5);
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle='rgba(202,255,51,.55)';ctx.lineWidth=2;ctx.stroke();
+    ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();
+    const grad=ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,'rgba(202,255,51,.18)');grad.addColorStop(1,'rgba(202,255,51,0)');
+    ctx.fillStyle=grad;ctx.fill();
+  }
+
+  setInterval(()=>{
+    price=Math.max(20,price*(1+(Math.random()-.48)*.04));
+    series.push(price);if(series.length>MAXPTS)series.shift();
+    draw();
+  },900);
+  draw();
+})();
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  BOOT — seed data, hash passwords, build stock AVL trees
+// ══════════════════════════════════════════════════════════════════════════════
+(async()=>{
+  // Disable quick-login buttons until passwords are hashed
+  document.querySelectorAll('.qbtn').forEach(b=>b.disabled=true);
+  document.getElementById('lg-btn').disabled=true;
+  document.getElementById('lg-btn').textContent='Initializing…';
+  try{
+    // Tenants
+    TS.add('AlphaFund','AlphaFund Capital Management');
+    TS.add('BetaCapital','BetaCapital Investment Group');
+
+    // Users (SHA-256 via SubtleCrypto)
+    await AS.addUser('AlphaFund','alice','Alice Wanjiru','pass123',Role.AD);
+    await AS.addUser('AlphaFund','bob',  'Bob Otieno',   'pass123',Role.A);
+    await AS.addUser('AlphaFund','carol','Carol Muthoni','pass123',Role.V);
+    await AS.addUser('BetaCapital','dave','Dave Kamau',  'pass123',Role.AD);
+    await AS.addUser('BetaCapital','eve', 'Eve Njeri',   'pass123',Role.A);
+
+    // Stock data — bulk insert into AVL Trees
+    const TICKERS=['AAPL','MSFT','GOOGL','AMZN','TSLA','NVDA','META'];
+    const TENANTS=['AlphaFund','BetaCapital'];
+    const BASE={AAPL:150,MSFT:280,GOOGL:100,AMZN:130,TSLA:200,NVDA:400,META:300};
+
+    for(const tid of TENANTS){
+      for(const tick of TICKERS){
+        const recs=[];let p=BASE[tick];const s=new Date('2020-01-01');
+        for(let d=0;d<252*5;d++){
+          const dt=new Date(s.getTime()+d*86400000);
+          if(dt.getDay()===0||dt.getDay()===6)continue;
+          p=Math.max(5,p*(1+(Math.random()-.48)*.025));
+          const o=+(p*(1+(Math.random()-.5)*.006)).toFixed(2);
+          const c=+(p*(1+(Math.random()-.5)*.006)).toFixed(2);
+          const h=+(Math.max(o,c)*(1+Math.random()*.01)).toFixed(2);
+          const l=+(Math.min(o,c)*(1-Math.random()*.01)).toFixed(2);
+          recs.push(new Stock(tick,dt.toISOString().slice(0,10),o,h,l,c,Math.floor(1e6+Math.random()*5e7)));
+        }
+        SS.bulk(tid,tick,recs);
+      }
+    }
+
+    // Cross-tenant permission
+    PS.grant('AlphaFund','BetaCapital','AAPL','alice');
+
+    updateBadge();
+
+    // Keyboard login shortcut
+    ['lg-u','lg-p'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+    });
+
+    document.querySelectorAll('.qbtn').forEach(b=>b.disabled=false);
+    document.getElementById('lg-btn').disabled=false;
+    document.getElementById('lg-btn').textContent='Sign In →';
+    console.log(`[StockIQ] Boot complete — ${$n(SS.totalNodes())} AVL nodes across ${SS.treeCount()} trees`);
+  }catch(err){
+    console.error('[StockIQ] Boot error:',err);
+  }
+})();
+</script>
+</body>
+</html>
